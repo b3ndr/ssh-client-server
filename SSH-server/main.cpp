@@ -9,7 +9,7 @@ using namespace std;
 
 bool checkCredentials(string credsString) {
 //  [ABSOLUTE PATH TO YOUR credentials.txt FILE]
-    ifstream credsFile ("/home/b3ndr/Downloads/ssh-client-server/ssh-client-server/SSH-server/credentials.txt");
+    ifstream credsFile ("path/to/credentials.txt");
 
     if (credsFile.is_open()){
         string line;
