@@ -2,7 +2,20 @@
 
 using namespace std;
 
+// just for easier input-output
+struct IO {
+    template <typename T>
+    const IO & operator << (const T & t) const {
+        std :: cout << t;
+        return *this;
+    }
 
+    template <typename T>
+    const IO & operator >> (T & t) const {
+        std :: cin >> t;
+        return *this;
+    }
+};
 
 int main() {
     string login, password, command, message;
@@ -19,6 +32,9 @@ int main() {
     socket_descriptor = socket(AF_INET, SOCK_STREAM, 0);
     connect(socket_descriptor, (sockaddr*)&server, sizeof(server));
 
+    IO () << "Login:" >> login;
+    IO () << "Password:" >> password;
+    IO () << "Command:" >> command;
 
     message = login + " "+ password + "\n" + command;
 

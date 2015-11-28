@@ -121,7 +121,59 @@ void proceedRequest(int request) {
 }
 
 int main() {
-    cout << "Hello World" << endl;
-    return false;
-    // code here...
+    epoll_event ev;
+    epoll_event *events;
+    int epoll_file_desc = epoll_create1(0);
+    int file_desc = createSocket(8080);
+    int socket = listen(file_desc, SOMAXCONN);
+
+    ev.data.fd = file_desc;
+    ev.events = EPOLLIN | EPOLLET;
+    socket = epoll_ctl(epoll_file_desc, EPOLL_CTL_ADD, file_desc, &ev);
+
+    events = (epoll_event*)calloc(64, sizeof(ev)); // 64 max events to retrieve
+
+    cout << "Server is running" << endl;
+
+    while (true) {
+        int waiter;
+        sockaddr sockaddr;
+        socklen_t length;
+
+        waiter = epoll_wait(epoll_file_desc, events, 64, -1);
+
+        for (int i = 0; i < waiter; i++) {
+            if ( (events[i].events & EPOLLHUP) || (!(events[i].events & EPOLLIN)) || (events[i].events & EPOLLERR) ) {
+                cout << "epoll error" << endl;
+                close(events[i].data.fd);
+            } else if (file_desc == events[i].data.fd) {
+                while (true) {
+
+                    length = sizeof(&sockaddr);
+
+                    int id = accept(file_desc, &sockaddr, &length);
+
+                    if (id == -1) {
+                        break;
+                    } else {
+                        noBlockSocket(id);
+                        ev.data.fd = id;
+                        ev.events = EPOLLIN | EPOLLET;
+
+                        socket = epoll_ctl(epoll_file_desc, EPOLL_CTL_ADD, id, &ev);
+                        cout << "Socket connection is ready" << endl;
+                    }
+                }
+            } else {
+
+                // fork and execute
+                int pid = fork();
+
+                if (pid == 0) {
+                    proceedRequest(events[i].data.fd);
+                    return false;
+                }
+            }
+        }
+    }
 }
